@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "password": "adminpassword",
+      "role": "ADMIN",
+      "active": true,
+      "createdAt": "2025-04-01T14:24:06.346Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "1",
+      "name": "Sample Product",
+      "description": "This is a sample product description.",
+      "price": 19.99,
+      "imageUrl": "https://via.placeholder.com/300",
+      "createdAt": "2025-04-01T14:24:06.348Z",
+      "updatedAt": "2025-04-01T14:24:06.348Z"
+    }
+  ]
+}
