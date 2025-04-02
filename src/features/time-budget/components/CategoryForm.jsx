@@ -20,17 +20,34 @@ const predefinedColors = [
 const CategoryForm = ({ 
   initialValues = { name: '', color: '#4F46E5', hours: 0, minutes: 0 }, 
   onSubmit, 
-  onCancel 
+  onCancel,
+  isEditing = false,
+  timeOnly = false 
 }) => {
   const { categories } = useTimeBudget();
   const [formData, setFormData] = useState(initialValues);
   const [error, setError] = useState('');
-  const [createNew, setCreateNew] = useState(true);
+  const [createNew, setCreateNew] = useState(isEditing ? false : true);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
 
-  // Effect to handle selecting an existing category
+  // Initialize internal state when the component mounts
   useEffect(() => {
-    if (!createNew && selectedCategoryId) {
+    // When in edit mode, always use the provided initialValues
+    if (isEditing) {
+      setFormData(initialValues);
+      setCreateNew(false); // Ensure we're not in create mode
+    } else {
+      // For add mode, set default state based on createNew flag
+      if (createNew) {
+        setFormData({ name: '', color: '#4F46E5', hours: 0, minutes: 0 });
+      }
+      // selectedCategoryId is handled by the other useEffect
+    }
+  }, [isEditing, initialValues, createNew]);
+
+  // Handle changes when selecting an existing category (add mode only)
+  useEffect(() => {
+    if (!isEditing && !createNew && selectedCategoryId) {
       const selectedCategory = categories.find(c => c.id === selectedCategoryId);
       if (selectedCategory) {
         setFormData({
@@ -41,11 +58,8 @@ const CategoryForm = ({
           minutes: selectedCategory.defaultMinutes || 0
         });
       }
-    } else if (createNew) {
-      // Reset form for new category
-      setFormData({ name: '', color: '#4F46E5', hours: 0, minutes: 0 });
     }
-  }, [createNew, selectedCategoryId, categories]);
+  }, [createNew, selectedCategoryId, categories, isEditing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,14 +77,24 @@ const CategoryForm = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (createNew) {
+    // For timeOnly editing, skip name validation
+    if (isEditing && timeOnly) {
+      // No validation needed for timeOnly editing
+      // Just make sure time values are valid (handled by input constraints)
+    } else if (isEditing) {
+      // For full editing, just validate that the name isn't empty
+      if (!formData.name.trim()) {
+        setError('Category name is required');
+        return;
+      }
+    } else if (createNew) {
       // Validate form data for new category
       if (!formData.name.trim()) {
         setError('Category name is required');
         return;
       }
     } else {
-      // Validate selected category
+      // Validate selected category when using existing
       if (!selectedCategoryId) {
         setError('Please select a category');
         return;
@@ -89,44 +113,69 @@ const CategoryForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+      {/* Clear indication of what we're doing - editing vs adding */}
+      {isEditing && (
+        <div className="mb-4 text-indigo-700 font-medium">
+          {timeOnly ? 'Edit time allocation for' : 'Editing'} "{initialValues.name}" {timeOnly ? '' : 'category'}
+        </div>
+      )}
+      
+      {/* Display category info when in timeOnly edit mode */}
+      {isEditing && timeOnly && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Category
+          </label>
+          <div className="flex items-center p-2 border border-gray-200 rounded-md bg-gray-50">
+            <div 
+              className="w-4 h-4 rounded-full mr-2"
+              style={{ backgroundColor: formData.color }}
+            />
+            <span className="text-gray-800">{formData.name}</span>
+          </div>
+        </div>
+      )}
+      
       {error && (
         <div className="mb-4 text-red-500 text-sm">
           {error}
         </div>
       )}
       
-      {/* Option to select existing category or create new */}
-      <div className="mb-4">
-        <div className="flex space-x-4">
-          <div className="flex items-center">
-            <input
-              type="radio"
-              id="useExisting"
-              checked={!createNew}
-              onChange={() => setCreateNew(false)}
-              className="mr-2"
-            />
-            <label htmlFor="useExisting" className="text-sm font-medium text-gray-700">
-              Use existing category
-            </label>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="radio"
-              id="createNew"
-              checked={createNew}
-              onChange={() => setCreateNew(true)}
-              className="mr-2"
-            />
-            <label htmlFor="createNew" className="text-sm font-medium text-gray-700">
-              Create new category
-            </label>
+      {/* Option to select existing category or create new - only shown in add mode (not edit mode) */}
+      {!isEditing && (
+        <div className="mb-4">
+          <div className="flex space-x-4">
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="useExisting"
+                checked={!createNew}
+                onChange={() => setCreateNew(false)}
+                className="mr-2"
+              />
+              <label htmlFor="useExisting" className="text-sm font-medium text-gray-700">
+                Use existing category
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="createNew"
+                checked={createNew}
+                onChange={() => setCreateNew(true)}
+                className="mr-2"
+              />
+              <label htmlFor="createNew" className="text-sm font-medium text-gray-700">
+                Create new category
+              </label>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
-      {/* Existing category selector */}
-      {!createNew && (
+      {/* Existing category selector - only shown in add mode when selecting existing category */}
+      {!isEditing && !createNew && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Select Category
@@ -146,8 +195,8 @@ const CategoryForm = ({
         </div>
       )}
       
-      {/* Category name field (only for new categories) */}
-      {createNew && (
+      {/* Category name field (for new categories or when editing, not for timeOnly mode) */}
+      {(createNew || (isEditing && !timeOnly)) && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Category Name
@@ -163,8 +212,8 @@ const CategoryForm = ({
         </div>
       )}
       
-      {/* Color picker (only for new categories) */}
-      {createNew && (
+      {/* Color picker (for new categories or when editing, not for timeOnly mode) */}
+      {(createNew || (isEditing && !timeOnly)) && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Color
@@ -202,8 +251,8 @@ const CategoryForm = ({
         </div>
       )}
       
-      {/* Display selected category color for existing categories */}
-      {!createNew && selectedCategoryId && (
+      {/* Display selected category color for existing categories in add mode */}
+      {!isEditing && !createNew && selectedCategoryId && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Category Color
@@ -265,7 +314,7 @@ const CategoryForm = ({
           type="submit"
           className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
-          {createNew ? 'Create & Add' : 'Add Allocation'}
+          {isEditing ? (timeOnly ? 'Update Time' : 'Update') : (createNew ? 'Create & Add' : 'Add Allocation')}
         </button>
       </div>
     </form>

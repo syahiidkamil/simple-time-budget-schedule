@@ -31,14 +31,18 @@ const CategoryItem = ({ allocation }) => {
 
   const handleUpdate = async (updatedCategory) => {
     try {
-      // Only update name and color of the category (not the time allocation)
-      await updateCategory(allocation.categoryId, {
-        name: updatedCategory.name,
-        color: updatedCategory.color
+      // Only update the time allocation
+      await updateAllocation(allocation.categoryId, {
+        hours: updatedCategory.hours,
+        minutes: updatedCategory.minutes
       });
       setIsEditing(false);
+      
+      // Update local state
+      setHours(updatedCategory.hours);
+      setMinutes(updatedCategory.minutes);
     } catch (err) {
-      console.error('Error updating category:', err);
+      console.error('Error updating time allocation:', err);
     }
   };
 
@@ -64,6 +68,8 @@ const CategoryItem = ({ allocation }) => {
         }}
         onSubmit={handleUpdate}
         onCancel={() => setIsEditing(false)}
+        isEditing={true}
+        timeOnly={true}
       />
     );
   }

@@ -119,7 +119,8 @@ const CategoryManagement = () => {
           <CategoryForm 
             initialValues={editingCategory}
             onSubmit={handleUpdateCategory} 
-            onCancel={() => setEditingCategory(null)} 
+            onCancel={() => setEditingCategory(null)}
+            isEditing={true}
           />
         </div>
       )}
