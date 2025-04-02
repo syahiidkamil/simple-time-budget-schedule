@@ -1,105 +1,73 @@
-# Next.js CSR Authentication Template
+# Time Budget & Schedule App
 
-A comprehensive template for building client-side rendered (CSR) Next.js applications with React Router v7, authentication, protected routes, and a simple API.
+A web application that helps users budget their 24 hours and schedule their activities. This app addresses the core problem of time management by providing an intuitive interface for allocating time and planning daily schedules.
 
-## Features
+## Implemented Features
 
-- **Client-Side Rendering (CSR)**
-  - Single Page Application (SPA) architecture
-  - React Router v7 for client-side routing
-  - Next.js for API routes and server-side functionality
-
-- **Complete Authentication System**
-  - Login and Registration
-  - Protected Routes
-  - Role-Based Access Control (Admin vs Regular Users)
-
-- **API Integration**
-  - Auth API (Login, Register)
-  - Products API (CRUD operations)
-  - Admin Dashboard
-
-- **Modular Architecture**
-  - Feature-based organization
-  - Clean separation of concerns
-  - Reusable components and hooks
-
-## Project Structure
-
-The project follows a feature-based structure:
-
-```
-src/
-├── features/              # Feature-based modules
-│   ├── auth/              # Authentication feature
-│   ├── dashboard/         # Dashboard feature
-│   ├── profile/           # Profile feature
-│   └── admin/             # Admin features
-├── shared/                # Shared code across features
-│   ├── components/        # Shared UI components
-│   ├── hooks/             # Shared custom hooks
-│   ├── lib/               # Utility libraries
-│   ├── routes/            # Route definitions and guards
-│   ├── services/          # Shared services
-│   └── utils/             # Utility functions
-├── pages/
-│   ├── api/               # Next.js API routes 
-│   └── index.js           # Entry point for SPA
-├── styles/                # Global styles
-└── App.jsx                # Main SPA component
-```
+### Time Budget Feature
+- Visual breakdown of 24-hour time allocation with a pie chart
+- Create, edit, and delete time categories with custom colors
+- Track allocated vs. remaining time
+- Day-based navigation system (Today, Tomorrow, Day After)
+- Copy budget from one day to another
+- Daily reset time with automatic date transitions
+- Persistent storage with localStorage
 
 ## Getting Started
 
-1. Clone this repository
-2. Install dependencies: `npm install`
-3. Seed the database: `npm run seed`
-4. Run the development server: `npm run dev`
-5. Open [http://localhost:3000](http://localhost:3000)
+### Prerequisites
+- Node.js (v18+ recommended)
+- npm or yarn
 
-## Database Seeding
+### Installation
 
-The template includes a simple JSON database stored in `data/db.json`. To reset the database to its initial state with the default admin user, run:
-
+1. Clone the repository
 ```bash
-npm run seed
+git clone https://github.com/your-username/simple-time-budget-schedule.git
+cd simple-time-budget-schedule
 ```
 
-## Authentication
+2. Install dependencies
+```bash
+npm install
+# or
+yarn
+```
 
-The template uses a simple token-based authentication system with localStorage for persistence. In a production environment, you should implement proper JWT handling, HTTP-only cookies, and more secure authentication practices.
+3. Create a `.env` file based on `.env.example`
+```bash
+cp .env.example .env
+```
 
-### Default Admin Account
+4. Run the development server
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-- **Email:** admin@example.com
-- **Password:** adminpassword
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application
 
-## API Routes
+## Project Structure
 
-- `/api/auth/login`: POST - Authenticate user
-- `/api/auth/register`: POST - Register new user
-- `/api/products`: GET (public), POST (admin)
-- `/api/products/[id]`: GET (public), PUT/DELETE (admin)
+- `/src/features/time-budget` - Time Budget feature implementation
+  - `/components` - Reusable UI components for time budget
+  - `/contexts` - React context for state management
+  - `/services` - Logic for data operations
+  - `/utils` - Utility functions for time calculations
+  - `TimeBudgetPage.jsx` - Main page component
 
-## Client-Side Routing
+## Current Implementation Notes
 
-The template uses React Router v7 for client-side routing:
+For the MVP version, the time budget data is stored in the browser's localStorage. In a future implementation, this data will be synchronized with a backend database.
 
-- `/`: Dashboard home (protected)
-- `/profile`: User profile (protected)
-- `/login`: Login page (public)
-- `/register`: Registration page (public)
-- `/admin/users`: User management (admin only)
-- `/admin/invitation-codes`: Invitation codes (admin only)
+## Next Steps
 
-## Customization
-
-This template is designed to be a starting point. You can:
-
-- Replace the simple JSON database with MongoDB, PostgreSQL, etc.
-- Enhance security with proper JWT implementation
-- Add more features or expand existing ones
-- Customize the UI to match your brand
+- Implement the Schedule feature
+- Add database persistence
+- Add user preferences management
+- Implement mobile-responsive design improvements
+- Add data visualization enhancements
 
 ## License
 

@@ -5,6 +5,7 @@ import PublicRoute from "./shared/routes/PublicRoute";
 
 import DashboardLayout from "./features/dashboard/DashboardLayout";
 import { AuthProvider } from "./features/auth/contexts/AuthProvider";
+import { TimeBudgetProvider } from "./features/time-budget/contexts/TimeBudgetContext";
 
 // Import pages
 import LoginPage from "./features/auth/LoginPage";
@@ -77,8 +78,10 @@ const App = () => {
 
   return (
     <AuthProvider>
-      <SonnerProvider />
-      <RouterProvider router={router} />
+      <TimeBudgetProvider>
+        <SonnerProvider />
+        <RouterProvider router={router} />
+      </TimeBudgetProvider>
     </AuthProvider>
   );
 };
