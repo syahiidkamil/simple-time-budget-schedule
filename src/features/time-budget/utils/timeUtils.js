@@ -84,6 +84,13 @@ export const getNextDays = (resetTime, numberOfDays = 3) => {
   return dates;
 };
 
+// Generate a date for a specific number of days in the future
+export const getDateInFuture = (days) => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date;
+};
+
 // Check if a date is one of the special dates (Today, Tomorrow, Day After)
 export const getRelativeDateLabel = (dateString, resetTime) => {
   const date = parseDate(dateString);

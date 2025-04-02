@@ -68,11 +68,8 @@ const ensureUpcomingBudgets = (data, resetTime) => {
       // Create allocations based on categories
       const allocations = data.categories.map(category => ({
         categoryId: category.id,
-        hours: category.id === "1" ? 8 : // Work
-               category.id === "2" ? 8 : // Sleep
-               category.id === "3" ? 5 : // Personal
-               1, // Default for other categories
-        minutes: category.id === "3" ? 30 : 0 // 30 minutes for Personal, 0 for others
+        hours: category.defaultHours || 0,
+        minutes: category.defaultMinutes || 0
       }));
       
       // Create a new budget entry
@@ -145,7 +142,9 @@ const timeBudgetService = {
     const newCategory = {
       id: Math.random().toString(36).substr(2, 9), // Generate a random ID
       name: categoryData.name,
-      color: categoryData.color
+      color: categoryData.color,
+      defaultHours: categoryData.hours || 0,
+      defaultMinutes: categoryData.minutes || 0
     };
     
     // Add to categories array
@@ -172,12 +171,37 @@ const timeBudgetService = {
     const categoryIndex = timebudgetData.categories.findIndex(c => c.id === categoryId);
     
     if (categoryIndex !== -1) {
-      // Update category properties (name and color only)
+      const oldCategory = timebudgetData.categories[categoryIndex];
+      
+      // Update category properties
       timebudgetData.categories[categoryIndex] = {
-        ...timebudgetData.categories[categoryIndex],
-        name: updates.name !== undefined ? updates.name : timebudgetData.categories[categoryIndex].name,
-        color: updates.color !== undefined ? updates.color : timebudgetData.categories[categoryIndex].color
+        ...oldCategory,
+        name: updates.name !== undefined ? updates.name : oldCategory.name,
+        color: updates.color !== undefined ? updates.color : oldCategory.color,
+        defaultHours: updates.defaultHours !== undefined ? updates.defaultHours : oldCategory.defaultHours,
+        defaultMinutes: updates.defaultMinutes !== undefined ? updates.defaultMinutes : oldCategory.defaultMinutes
       };
+      
+      // If updating default hours/minutes, update all future budgets
+      if (updates.defaultHours !== undefined || updates.defaultMinutes !== undefined) {
+        const today = formatDateToString(getCurrentDate(timebudgetData.resetTime));
+        
+        // Only update allocations for future dates
+        timebudgetData.budgets.forEach(budget => {
+          if (budget.date >= today) {
+            const allocationIndex = budget.allocations.findIndex(a => a.categoryId === categoryId);
+            if (allocationIndex !== -1) {
+              // Update the allocation with new default values if provided
+              if (updates.defaultHours !== undefined) {
+                budget.allocations[allocationIndex].hours = updates.defaultHours;
+              }
+              if (updates.defaultMinutes !== undefined) {
+                budget.allocations[allocationIndex].minutes = updates.defaultMinutes;
+              }
+            }
+          }
+        });
+      }
       
       // Save changes to localStorage
       saveData(timebudgetData);
@@ -251,13 +275,16 @@ const timeBudgetService = {
           date: toDate,
           allocations: JSON.parse(JSON.stringify(sourceBudget.allocations))
         });
+        
+        // Sort budgets by date for better organization
+        timebudgetData.budgets.sort((a, b) => new Date(a.date) - new Date(b.date));
       }
       
       // Save changes to localStorage
       saveData(timebudgetData);
     }
     
-    return Promise.resolve({ success: true });
+    return Promise.resolve({ success: true, date: toDate });
   },
   
   // Get reset time
@@ -276,16 +303,28 @@ const timeBudgetService = {
   },
   
   // Get upcoming dates based on reset time
-  getUpcomingDates: () => {
+  getUpcomingDates: (numberOfDays = 3) => {
     // Ensure we have budgets for upcoming days
     timebudgetData = ensureUpcomingBudgets(timebudgetData, timebudgetData.resetTime);
     saveData(timebudgetData);
     
     // Get the next few days based on the reset time
-    const nextDays = getNextDays(timebudgetData.resetTime, 3);
+    const nextDays = getNextDays(timebudgetData.resetTime, numberOfDays);
     const dateStrings = nextDays.map(date => formatDateToString(date));
     
-    return Promise.resolve(dateStrings);
+    // Also include any custom dates that are in the future but not in the default range
+    const today = formatDateToString(getCurrentDate(timebudgetData.resetTime));
+    const customFutureDates = timebudgetData.budgets
+      .filter(budget => {
+        // Only include dates that are in the future but not already in dateStrings
+        return budget.date >= today && !dateStrings.includes(budget.date);
+      })
+      .map(budget => budget.date);
+    
+    // Combine and sort all dates
+    const allDates = [...dateStrings, ...customFutureDates].sort();
+    
+    return Promise.resolve(allDates);
   },
   
   // Get archived dates (dates before today)

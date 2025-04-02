@@ -1,10 +1,10 @@
 {
   "timebudget": {
     "categories": [
-      { "id": "1", "name": "Work", "color": "#4F46E5" },
-      { "id": "2", "name": "Sleep", "color": "#8B5CF6" },
-      { "id": "3", "name": "Personal", "color": "#EC4899" },
-      { "id": "4", "name": "Exercise", "color": "#10B981" }
+      { "id": "1", "name": "Work", "color": "#4F46E5", "defaultHours": 8, "defaultMinutes": 0 },
+      { "id": "2", "name": "Sleep", "color": "#8B5CF6", "defaultHours": 8, "defaultMinutes": 0 },
+      { "id": "3", "name": "Personal", "color": "#EC4899", "defaultHours": 5, "defaultMinutes": 30 },
+      { "id": "4", "name": "Exercise", "color": "#10B981", "defaultHours": 1, "defaultMinutes": 0 }
     ],
     "budgets": [
       {

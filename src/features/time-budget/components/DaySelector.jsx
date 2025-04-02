@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useTimeBudget } from '../hooks/useTimeBudget';
+import { formatDateToString, parseDate } from '../utils/timeUtils';
 
 const DaySelector = () => {
   const { 
@@ -16,14 +17,52 @@ const DaySelector = () => {
   
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyTo, setCopyTo] = useState('');
+  const [customDate, setCustomDate] = useState('');
+  const [useCustomDate, setUseCustomDate] = useState(false);
   const tabsRef = useRef(null);
 
-  const handleCopyBudget = async () => {
-    if (!copyTo) return;
+  // Create a new budget with custom date
+  const [showNewBudgetDialog, setShowNewBudgetDialog] = useState(false);
+  const [newBudgetDate, setNewBudgetDate] = useState('');
+
+  const createNewBudget = () => {
+    // Set the date to tomorrow by default
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setNewBudgetDate(formatDateToString(tomorrow));
+    setShowNewBudgetDialog(true);
+  };
+
+  const handleCreateBudget = async () => {
+    if (!newBudgetDate) return;
     
     try {
-      await copyBudget(selectedDate, copyTo);
+      // Create an empty budget for the selected date
+      await copyBudget(selectedDate, newBudgetDate); 
+      setShowNewBudgetDialog(false);
+      
+      // Select the new date
+      setSelectedDate(newBudgetDate);
+    } catch (err) {
+      console.error('Error creating new budget:', err);
+    }
+  };
+
+  const handleCopyBudget = async () => {
+    const targetDate = useCustomDate ? customDate : copyTo;
+    if (!targetDate) return;
+    
+    try {
+      await copyBudget(selectedDate, targetDate);
       setShowCopyDialog(false);
+      setUseCustomDate(false);
+      setCustomDate('');
+      setCopyTo('');
+      
+      // If copying to a date not in the current view, add it and switch to it
+      if (!upcomingDates.includes(targetDate) && !archivedDates.includes(targetDate)) {
+        setSelectedDate(targetDate);
+      }
     } catch (err) {
       console.error('Error copying budget:', err);
     }
@@ -44,6 +83,21 @@ const DaySelector = () => {
   
   // Get dates to display based on current view (upcoming or archive)
   const datesToDisplay = showArchive ? archivedDates : upcomingDates;
+
+  // Handle custom date change
+  const handleCustomDateChange = (e) => {
+    const value = e.target.value;
+    setCustomDate(value);
+    setUseCustomDate(true);
+  };
+
+  // Reset dialog state when opened
+  const openCopyDialog = () => {
+    setUseCustomDate(false);
+    setCustomDate('');
+    setCopyTo('');
+    setShowCopyDialog(true);
+  };
 
   return (
     <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
@@ -66,16 +120,16 @@ const DaySelector = () => {
           {showArchive ? 'Archive' : 'Budget Calendar'}
         </h3>
         
-        <div className="ml-auto flex">
+        <div className="ml-auto flex space-x-2">
           <button
             onClick={() => setShowArchive(!showArchive)}
-            className="flex items-center text-sm px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50 mr-2"
+            className="flex items-center text-sm px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50"
           >
             {showArchive ? 'Show Upcoming' : 'Show Archive'}
           </button>
           
           <button
-            onClick={() => setShowCopyDialog(true)}
+            onClick={openCopyDialog}
             className="flex items-center text-sm px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50"
           >
             <svg
@@ -93,6 +147,27 @@ const DaySelector = () => {
               />
             </svg>
             Copy Budget
+          </button>
+          
+          <button
+            onClick={createNewBudget}
+            className="flex items-center text-sm px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+            Add Budget
           </button>
         </div>
       </div>
@@ -146,16 +221,44 @@ const DaySelector = () => {
       {showCopyDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-semibold mb-4">Copy Budget</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Copy Budget</h3>
+              <button
+                onClick={() => setShowCopyDialog(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
             <p className="mb-4">
               Copy budget from <strong>{dateLabels[selectedDate]}</strong> to:
             </p>
             
             <div className="mb-4">
+              <div className="flex items-center mb-2">
+                <input
+                  type="radio"
+                  id="selectExisting"
+                  checked={!useCustomDate}
+                  onChange={() => setUseCustomDate(false)}
+                  className="mr-2"
+                />
+                <label htmlFor="selectExisting" className="text-sm font-medium text-gray-700">
+                  Select existing date
+                </label>
+              </div>
+              
               <select
                 value={copyTo}
-                onChange={(e) => setCopyTo(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                onChange={(e) => {
+                  setCopyTo(e.target.value);
+                  setUseCustomDate(false);
+                }}
+                disabled={useCustomDate}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${useCustomDate ? 'bg-gray-100' : ''}`}
               >
                 <option value="">Select a date</option>
                 {upcomingDates
@@ -168,6 +271,29 @@ const DaySelector = () => {
               </select>
             </div>
             
+            <div className="mb-6">
+              <div className="flex items-center mb-2">
+                <input
+                  type="radio"
+                  id="customDate"
+                  checked={useCustomDate}
+                  onChange={() => setUseCustomDate(true)}
+                  className="mr-2"
+                />
+                <label htmlFor="customDate" className="text-sm font-medium text-gray-700">
+                  Select custom date
+                </label>
+              </div>
+              
+              <input
+                type="date"
+                value={customDate}
+                onChange={handleCustomDateChange}
+                disabled={!useCustomDate}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${!useCustomDate ? 'bg-gray-100' : ''}`}
+              />
+            </div>
+            
             <div className="flex justify-end">
               <button
                 onClick={() => setShowCopyDialog(false)}
@@ -177,14 +303,66 @@ const DaySelector = () => {
               </button>
               <button
                 onClick={handleCopyBudget}
-                disabled={!copyTo}
+                disabled={useCustomDate ? !customDate : !copyTo}
                 className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
-                  copyTo
+                  (useCustomDate && customDate) || (!useCustomDate && copyTo)
                     ? 'bg-indigo-600 hover:bg-indigo-700'
                     : 'bg-indigo-400 cursor-not-allowed'
                 }`}
               >
                 Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Add Budget Dialog */}
+      {showNewBudgetDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Add New Budget</h3>
+              <button
+                onClick={() => setShowNewBudgetDialog(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="mb-4">
+              Select date for the new budget:
+            </p>
+            
+            <div className="mb-6">
+              <input
+                type="date"
+                value={newBudgetDate}
+                onChange={(e) => setNewBudgetDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowNewBudgetDialog(false)}
+                className="mr-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateBudget}
+                disabled={!newBudgetDate}
+                className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
+                  newBudgetDate
+                    ? 'bg-indigo-600 hover:bg-indigo-700'
+                    : 'bg-indigo-400 cursor-not-allowed'
+                }`}
+              >
+                Create
               </button>
             </div>
           </div>

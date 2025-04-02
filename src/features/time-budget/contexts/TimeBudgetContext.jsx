@@ -160,7 +160,7 @@ export const TimeBudgetProvider = ({ children }) => {
   // Copy budget from one date to another
   const copyBudget = useCallback(async (fromDate, toDate) => {
     try {
-      await timeBudgetService.copyBudget(fromDate, toDate);
+      const result = await timeBudgetService.copyBudget(fromDate, toDate);
       
       // If the target date is the currently selected date, reload the allocations
       if (toDate === selectedDate) {
@@ -168,13 +168,20 @@ export const TimeBudgetProvider = ({ children }) => {
         setAllocations(budgetData);
       }
       
-      return { success: true };
+      // Check if we need to add this date to upcoming dates if it's not already there
+      if (!upcomingDates.includes(toDate) && !archivedDates.includes(toDate)) {
+        // Get fresh upcoming dates to ensure it's included
+        const updatedDates = await timeBudgetService.getUpcomingDates();
+        setUpcomingDates(updatedDates);
+      }
+      
+      return result;
     } catch (err) {
       console.error('Error copying budget:', err);
       setError('Failed to copy budget');
       throw err;
     }
-  }, [selectedDate]);
+  }, [selectedDate, upcomingDates, archivedDates]);
   
   // Calculate total allocated minutes
   const totalMinutes = 24 * 60;
