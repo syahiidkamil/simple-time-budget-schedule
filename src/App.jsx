@@ -11,7 +11,8 @@ import LoginPage from "./features/auth/LoginPage";
 import RegisterPage from "./features/auth/RegisterPage";
 import NotFoundPage from "./features/not-found/NotFoundPage";
 import DashboardHomePage from "./features/dashboard-home/DashboardHomePage";
-import ProfilePage from "./features/profile/ProfilePage";
+import TimeBudgetPage from "./features/time-budget/TimeBudgetPage";
+import SchedulePage from "./features/schedule/SchedulePage";
 
 // Route configuration array
 const routesConfig = [
@@ -32,8 +33,12 @@ const routesConfig = [
         element: <DashboardHomePage />,
       },
       {
-        path: "profile",
-        element: <ProfilePage />,
+        path: "time-budget",
+        element: <TimeBudgetPage />,
+      },
+      {
+        path: "schedule",
+        element: <SchedulePage />,
       }
     ],
   },

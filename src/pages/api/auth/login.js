@@ -1,14 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import prisma from '../utils/db/prisma';
+import { comparePassword } from '../utils/auth/password';
+import { generateToken } from '../utils/auth/jwt';
 
-// Simple function to read the JSON database
-const readDB = () => {
-  const dbPath = path.join(process.cwd(), 'data', 'db.json');
-  const dbData = fs.readFileSync(dbPath, 'utf8');
-  return JSON.parse(dbData);
-};
-
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ 
@@ -18,48 +12,40 @@ export default function handler(req, res) {
   }
 
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     // Basic validation
-    if (!email || !password) {
+    if (!username || !password) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Email and password are required' 
+        message: 'Username and password are required' 
       });
     }
 
-    // Read database
-    const db = readDB();
-    
-    // Find user
-    const user = db.users.find(
-      (user) => user.email.toLowerCase() === email.toLowerCase()
-    );
+    // Find user by username
+    const user = await prisma.user.findUnique({
+      where: { username }
+    });
 
     // Check if user exists and password matches
-    if (!user || user.password !== password) {
+    if (!user || !(await comparePassword(password, user.password_hash))) {
       return res.status(401).json({ 
         success: false, 
-        message: 'Invalid email or password' 
+        message: 'Invalid username or password' 
       });
     }
 
-    // Create a sanitized user object (without password)
-    const sanitizedUser = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    };
+    // Generate JWT token
+    const token = generateToken(user);
 
-    // In a real application, you would use a proper JWT library
-    // For simplicity, we'll create a fake token
-    const token = Buffer.from(JSON.stringify(sanitizedUser)).toString('base64');
-
-    // Return user data and token
+    // Return user data and token (excluding password_hash)
     res.status(200).json({
       success: true,
-      user: sanitizedUser,
+      user: {
+        id: user.id,
+        username: user.username,
+        preferences: user.preferences
+      },
       token,
       message: 'Login successful',
     });

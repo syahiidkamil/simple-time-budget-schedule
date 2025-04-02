@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const result = await authService.login(
-      credentials.email,
+      credentials.username,
       credentials.password
     );
     if (result.success) {

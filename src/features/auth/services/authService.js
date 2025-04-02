@@ -3,10 +3,10 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 
 const authService = {
-  login: async (email, password) => {
+  login: async (username, password) => {
     try {
       const response = await axiosInstance.post("/api/auth/login", {
-        email,
+        username,
         password,
       });
 
@@ -113,42 +113,25 @@ const authService = {
   
   updateProfile: async (userData) => {
     try {
-      const response = await axiosInstance.patch("/api/auth/me", userData);
-      
-      const { user, success, message } = response.data;
-      
-      if (!success) {
-        toast.error(message || "Failed to update profile");
-        return { success: false, message };
-      }
-      
-      // Update stored user info in localStorage
+      // Since we're not using a profile update endpoint, just update localStorage
       const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-      localStorage.setItem("user", JSON.stringify({ ...currentUser, ...user }));
+      const updatedUser = { ...currentUser, ...userData };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
       
-      toast.success(message || "Profile updated successfully!");
-      return { success: true, user };
+      // Show success message
+      toast.success("Preferences updated successfully!");
+      return { success: true, user: updatedUser };
     } catch (error) {
-      const message = error.response?.data?.message || "Failed to update profile";
-      toast.error(message);
-      return { success: false, message };
+      toast.error("Failed to update preferences");
+      return { success: false, message: "Failed to update preferences" };
     }
   },
   
   fetchProfile: async () => {
+    // Since we're not using a profile endpoint, just return the user from localStorage
     try {
-      const response = await axiosInstance.get("/api/auth/me");
-      
-      const { user, success } = response.data;
-      
-      if (!success) {
-        return { success: false, user: null };
-      }
-      
-      // Update stored user info in localStorage
-      localStorage.setItem("user", JSON.stringify(user));
-      
-      return { success: true, user };
+      const user = authService.getCurrentUser();
+      return { success: !!user, user };
     } catch (error) {
       console.error("Error fetching profile:", error);
       return { success: false, user: null };

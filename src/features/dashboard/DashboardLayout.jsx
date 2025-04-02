@@ -19,7 +19,7 @@ const DashboardLayout = () => {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
           <div className="flex items-center">
-            <span className="mr-4">Hello, {user?.name || "User"}</span>
+            <span className="mr-4">Hello, {user?.username || "User"}</span>
             <button
               onClick={handleLogout}
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"

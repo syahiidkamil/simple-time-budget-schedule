@@ -4,7 +4,7 @@ import { useAuth } from "./hooks/useAuth";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -58,15 +58,15 @@ const LoginPage = () => {
           
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-                Email
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+                Username
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={formData.email}
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Username"
+                value={formData.username}
                 onChange={handleChange}
                 required
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
