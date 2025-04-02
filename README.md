@@ -5,11 +5,14 @@ A web application that helps users budget their 24 hours and schedule their acti
 ## Implemented Features
 
 ### Time Budget Feature
+- Date-based structure for budget entries, supporting past, present, and future dates
 - Visual breakdown of 24-hour time allocation with a pie chart
 - Create, edit, and delete time categories with custom colors
 - Track allocated vs. remaining time
-- Day-based navigation system (Today, Tomorrow, Day After)
-- Copy budget from one day to another
+- Dynamic date navigation (Today, Tomorrow, Day After Tomorrow, and additional dates)
+- Horizontal scrolling interface for date selection
+- Archive view for accessing past budget entries
+- Copy budget from one date to another
 - Daily reset time with automatic date transitions
 - Persistent storage with localStorage
 

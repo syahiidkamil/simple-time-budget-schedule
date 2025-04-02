@@ -49,30 +49,37 @@ const BudgetPieChart = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-4">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Time Distribution</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={pieData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            outerRadius={100}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {pieData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            formatter={formatLegendValue}
-            layout="vertical"
-            align="right"
-            verticalAlign="middle"
-          />
-        </PieChart>
-      </ResponsiveContainer>
+      
+      {pieData.length > 0 ? (
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={100}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {pieData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              formatter={formatLegendValue}
+              layout="vertical"
+              align="right"
+              verticalAlign="middle"
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500">No time categories defined yet</p>
+        </div>
+      )}
     </div>
   );
 };

@@ -37,51 +37,85 @@ export const calculateTimeUntilReset = (resetTime) => {
   return diffMinutes;
 };
 
-// Get current day label based on reset time
-export const getCurrentDayLabel = (resetTime) => {
-  const now = new Date();
-  const [resetHours, resetMinutes] = resetTime.split(':').map(Number);
-  
-  const resetDateTime = new Date();
-  resetDateTime.setHours(resetHours, resetMinutes, 0, 0);
-  
-  // If current time is past reset time, then "Today" is actually tomorrow
-  if (now >= resetDateTime) {
-    return "Tomorrow";
-  }
-  
-  return "Today";
+// Format a date as YYYY-MM-DD
+export const formatDateToString = (date) => {
+  return date.toISOString().split('T')[0];
 };
 
-// Get dates for the days (Today, Tomorrow, Day After)
-export const getDatesForDays = (resetTime) => {
+// Parse a YYYY-MM-DD string into a Date object
+export const parseDate = (dateString) => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+// Get current date adjusted by reset time
+export const getCurrentDate = (resetTime) => {
   const now = new Date();
   const [resetHours, resetMinutes] = resetTime.split(':').map(Number);
   
   const resetDateTime = new Date();
   resetDateTime.setHours(resetHours, resetMinutes, 0, 0);
   
-  let today = new Date();
-  
-  // If current time is past reset time, then "Today" is actually tomorrow
+  // If current time is past reset time, "Today" is actually tomorrow
   if (now >= resetDateTime) {
-    today.setDate(today.getDate() + 1);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
   }
   
+  return now;
+};
+
+// Get dates for the next n days starting from the current date
+export const getNextDays = (resetTime, numberOfDays = 3) => {
+  const startDate = getCurrentDate(resetTime);
+  const dates = [];
+  
+  for (let i = 0; i < numberOfDays; i++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+    dates.push(date);
+  }
+  
+  return dates;
+};
+
+// Check if a date is one of the special dates (Today, Tomorrow, Day After)
+export const getRelativeDateLabel = (dateString, resetTime) => {
+  const date = parseDate(dateString);
+  const today = getCurrentDate(resetTime);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  const dayAfter = new Date(today);
+  dayAfter.setDate(dayAfter.getDate() + 2);
   
-  const dayAfter = new Date(tomorrow);
-  dayAfter.setDate(dayAfter.getDate() + 1);
+  // Compare dates without time
+  const formatToCompare = (d) => formatDateToString(d);
   
-  return {
-    Today: today,
-    Tomorrow: tomorrow,
-    "Day After": dayAfter
-  };
+  if (formatToCompare(date) === formatToCompare(today)) {
+    return "Today";
+  } else if (formatToCompare(date) === formatToCompare(tomorrow)) {
+    return "Tomorrow";
+  } else if (formatToCompare(date) === formatToCompare(dayAfter)) {
+    return "Day After";
+  }
+  
+  return null; // Not a special date
 };
 
-// Format date to display (e.g., "Apr 2")
-export const formatDate = (date) => {
+// Format date for display (e.g., "Apr 2")
+export const formatDateForDisplay = (date) => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+// Create formatted date label for UI
+export const formatDateLabel = (dateString, resetTime) => {
+  const date = parseDate(dateString);
+  const relativeLabel = getRelativeDateLabel(dateString, resetTime);
+  
+  if (relativeLabel) {
+    return `${relativeLabel} - ${formatDateForDisplay(date)}`;
+  }
+  
+  return formatDateForDisplay(date);
 };

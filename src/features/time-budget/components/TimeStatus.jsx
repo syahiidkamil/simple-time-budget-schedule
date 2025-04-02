@@ -3,7 +3,13 @@ import { useTimeBudget } from '../hooks/useTimeBudget';
 import { formatTime, calculateTimeUntilReset } from '../utils/timeUtils';
 
 const TimeStatus = () => {
-  const { selectedDay, daysWithDates, allocatedMinutes, remainingMinutes, resetTime } = useTimeBudget();
+  const { 
+    selectedDate, 
+    dateLabels, 
+    allocatedMinutes, 
+    remainingMinutes, 
+    resetTime 
+  } = useTimeBudget();
   
   // Calculate time until reset
   const minutesUntilReset = calculateTimeUntilReset(resetTime);
@@ -14,7 +20,7 @@ const TimeStatus = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">
-            {selectedDay}'s Budget
+            {dateLabels[selectedDate]}
           </h2>
           <div className="flex items-center mt-1">
             <div className="text-sm text-gray-500">

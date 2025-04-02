@@ -1,18 +1,23 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import timeBudgetService from '../services/timeBudgetService';
-import { getCurrentDayLabel, getDatesForDays, formatDate } from '../utils/timeUtils';
+import { 
+  formatDateLabel, 
+  getCurrentDate, 
+  formatDateToString,
+  getRelativeDateLabel
+} from '../utils/timeUtils';
 
 export const TimeBudgetContext = createContext(null);
 
 export const TimeBudgetProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
-  const [selectedDay, setSelectedDay] = useState('Today');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [upcomingDates, setUpcomingDates] = useState([]);
+  const [archivedDates, setArchivedDates] = useState([]);
   const [resetTime, setResetTime] = useState('22:00');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Get dates for days based on reset time
-  const dates = getDatesForDays(resetTime);
+  const [showArchive, setShowArchive] = useState(false);
   
   // Initialize data
   useEffect(() => {
@@ -24,11 +29,20 @@ export const TimeBudgetProvider = ({ children }) => {
         const time = await timeBudgetService.getResetTime();
         setResetTime(time);
         
-        // Set the selected day based on current time and reset time
-        setSelectedDay(getCurrentDayLabel(time));
+        // Get upcoming dates
+        const dates = await timeBudgetService.getUpcomingDates();
+        setUpcomingDates(dates);
         
-        // Get categories for the selected day
-        const dayCategories = await timeBudgetService.getCategoriesForDay(selectedDay);
+        // Get archived dates
+        const archived = await timeBudgetService.getArchivedDates();
+        setArchivedDates(archived);
+        
+        // Set the selected date to today
+        const today = formatDateToString(getCurrentDate(time));
+        setSelectedDate(today);
+        
+        // Get categories for today
+        const dayCategories = await timeBudgetService.getCategoriesForDate(today);
         setCategories(dayCategories);
         
         setLoading(false);
@@ -42,25 +56,25 @@ export const TimeBudgetProvider = ({ children }) => {
     initializeData();
   }, []);
   
-  // Load categories when selected day changes
+  // Load categories when selected date changes
   useEffect(() => {
     const loadCategories = async () => {
+      if (!selectedDate) return;
+      
       try {
         setLoading(true);
-        const dayCategories = await timeBudgetService.getCategoriesForDay(selectedDay);
+        const dayCategories = await timeBudgetService.getCategoriesForDate(selectedDate);
         setCategories(dayCategories);
         setLoading(false);
       } catch (err) {
-        console.error('Error loading categories for day:', err);
+        console.error('Error loading categories for date:', err);
         setError('Failed to load categories');
         setLoading(false);
       }
     };
     
-    if (selectedDay) {
-      loadCategories();
-    }
-  }, [selectedDay]);
+    loadCategories();
+  }, [selectedDate]);
   
   // Add a new category
   const addCategory = useCallback(async (category) => {
@@ -78,7 +92,7 @@ export const TimeBudgetProvider = ({ children }) => {
   // Update a category
   const updateCategory = useCallback(async (categoryId, updates) => {
     try {
-      await timeBudgetService.updateCategoryForDay(selectedDay, categoryId, updates);
+      await timeBudgetService.updateCategoryForDate(selectedDate, categoryId, updates);
       setCategories(prev => 
         prev.map(cat => 
           cat.id === categoryId ? { ...cat, ...updates } : cat
@@ -89,7 +103,7 @@ export const TimeBudgetProvider = ({ children }) => {
       setError('Failed to update category');
       throw err;
     }
-  }, [selectedDay]);
+  }, [selectedDate]);
   
   // Delete a category
   const deleteCategory = useCallback(async (categoryId) => {
@@ -103,14 +117,14 @@ export const TimeBudgetProvider = ({ children }) => {
     }
   }, []);
   
-  // Copy budget from one day to another
-  const copyBudget = useCallback(async (fromDay, toDay) => {
+  // Copy budget from one date to another
+  const copyBudget = useCallback(async (fromDate, toDate) => {
     try {
-      await timeBudgetService.copyBudget(fromDay, toDay);
+      await timeBudgetService.copyBudget(fromDate, toDate);
       
-      // If the target day is the currently selected day, reload the categories
-      if (toDay === selectedDay) {
-        const dayCategories = await timeBudgetService.getCategoriesForDay(selectedDay);
+      // If the target date is the currently selected date, reload the categories
+      if (toDate === selectedDate) {
+        const dayCategories = await timeBudgetService.getCategoriesForDate(selectedDate);
         setCategories(dayCategories);
       }
       
@@ -120,7 +134,7 @@ export const TimeBudgetProvider = ({ children }) => {
       setError('Failed to copy budget');
       throw err;
     }
-  }, [selectedDay]);
+  }, [selectedDate]);
   
   // Calculate total allocated minutes
   const totalMinutes = 24 * 60;
@@ -128,28 +142,37 @@ export const TimeBudgetProvider = ({ children }) => {
     total + (cat.hours * 60 + cat.minutes), 0);
   const remainingMinutes = totalMinutes - allocatedMinutes;
   
-  // Format days with dates
-  const daysWithDates = {
-    Today: `Today - ${formatDate(dates.Today)}`,
-    Tomorrow: `Tomorrow - ${formatDate(dates.Tomorrow)}`,
-    "Day After": `Day After - ${formatDate(dates["Day After"])}`
+  // Create date labels for UI
+  const dateLabels = {};
+  [...upcomingDates, ...archivedDates].forEach(date => {
+    dateLabels[date] = formatDateLabel(date, resetTime);
+  });
+  
+  // Helper to get date label type (Today, Tomorrow, Day After, or Normal)
+  const getDateType = (date) => {
+    return getRelativeDateLabel(date, resetTime) || 'Normal';
   };
   
   const value = {
     categories,
-    selectedDay,
-    setSelectedDay,
+    selectedDate,
+    setSelectedDate,
+    upcomingDates,
+    archivedDates,
     resetTime,
-    daysWithDates,
     loading,
     error,
     totalMinutes,
     allocatedMinutes,
     remainingMinutes,
+    dateLabels,
+    getDateType,
     addCategory,
     updateCategory,
     deleteCategory,
-    copyBudget
+    copyBudget,
+    showArchive,
+    setShowArchive
   };
   
   return (
