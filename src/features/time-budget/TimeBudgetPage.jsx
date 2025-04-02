@@ -29,7 +29,7 @@ const TimeBudgetPage = () => {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6 max-w-7xl mx-auto">
+    <div className="bg-white shadow rounded-lg p-6 w-[95%] mx-auto">
       <h2 className="text-2xl font-bold mb-4">Time Budget</h2>
       <p className="mb-6 text-gray-600">
         Manage your daily time allocations for different activities.

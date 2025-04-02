@@ -89,6 +89,46 @@ saveData(timebudgetData);
 
 // Service methods for time budget operations
 const timeBudgetService = {
+  // Create a completely empty budget for a date
+  createEmptyBudget: (dateString) => {
+    // Check if budget already exists
+    const existingBudgetIndex = timebudgetData.budgets.findIndex(b => b.date === dateString);
+    
+    if (existingBudgetIndex !== -1) {
+      // Replace existing budget with empty one
+      timebudgetData.budgets[existingBudgetIndex].allocations = [];
+    } else {
+      // Create a new empty budget
+      timebudgetData.budgets.push({
+        date: dateString,
+        allocations: []
+      });
+      
+      // Sort budgets by date
+      timebudgetData.budgets.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+    
+    // Save changes
+    saveData(timebudgetData);
+    
+    return Promise.resolve({ success: true, date: dateString });
+  },
+  
+  // Clear all allocations from a budget
+  clearBudget: (dateString) => {
+    const budgetIndex = timebudgetData.budgets.findIndex(b => b.date === dateString);
+    
+    if (budgetIndex !== -1) {
+      // Clear all allocations
+      timebudgetData.budgets[budgetIndex].allocations = [];
+      
+      // Save changes
+      saveData(timebudgetData);
+    }
+    
+    return Promise.resolve({ success: true, date: dateString });
+  },
+  
   // Get all categories
   getAllCategories: () => {
     return Promise.resolve([...timebudgetData.categories]);
@@ -285,6 +325,29 @@ const timeBudgetService = {
     }
     
     return Promise.resolve({ success: true, date: toDate });
+  },
+  
+  // Delete a budget for a specific date
+  deleteBudget: (dateString) => {
+    console.log('TimeBudgetService: Deleting budget for date', dateString);
+    
+    // Find the budget for this date
+    const budgetIndex = timebudgetData.budgets.findIndex(b => b.date === dateString);
+    console.log('TimeBudgetService: Found budget at index', budgetIndex);
+    
+    if (budgetIndex !== -1) {
+      // Remove the budget entry completely
+      timebudgetData.budgets.splice(budgetIndex, 1);
+      console.log('TimeBudgetService: Budget removed, saving changes');
+      
+      // Save changes to localStorage
+      saveData(timebudgetData);
+      console.log('TimeBudgetService: Changes saved');
+    } else {
+      console.log('TimeBudgetService: No budget found to delete');
+    }
+    
+    return Promise.resolve({ success: true, date: dateString });
   },
   
   // Get reset time

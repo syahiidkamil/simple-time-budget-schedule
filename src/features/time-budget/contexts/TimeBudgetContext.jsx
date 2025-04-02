@@ -183,13 +183,49 @@ export const TimeBudgetProvider = ({ children }) => {
     }
   }, [selectedDate, upcomingDates, archivedDates]);
   
+  // Delete a budget
+  const deleteBudget = useCallback(async (dateString) => {
+    try {
+      console.log('Deleting budget for date:', dateString);
+      await timeBudgetService.deleteBudget(dateString);
+      console.log('Budget deleted successfully');
+      
+      // Update upcoming dates
+      const updatedUpcomingDates = await timeBudgetService.getUpcomingDates();
+      console.log('Updated upcoming dates:', updatedUpcomingDates);
+      setUpcomingDates(updatedUpcomingDates);
+      
+      // Update archived dates
+      const updatedArchivedDates = await timeBudgetService.getArchivedDates();
+      console.log('Updated archived dates:', updatedArchivedDates);
+      setArchivedDates(updatedArchivedDates);
+      
+      // Select a new date if the current date was deleted
+      if (dateString === selectedDate) {
+        console.log('Current date was deleted, selecting new date');
+        if (updatedUpcomingDates.length > 0) {
+          console.log('Selecting first upcoming date:', updatedUpcomingDates[0]);
+          setSelectedDate(updatedUpcomingDates[0]); 
+        } else if (updatedArchivedDates.length > 0) {
+          console.log('Selecting first archived date:', updatedArchivedDates[0]);
+          setSelectedDate(updatedArchivedDates[0]);
+        }
+      }
+      
+      return { success: true };
+    } catch (err) {
+      console.error('Error deleting budget:', err);
+      setError('Failed to delete budget');
+      throw err;
+    }
+  }, [selectedDate]);
+  
   // Calculate total allocated minutes
   const totalMinutes = 24 * 60;
   const allocatedMinutes = allocations.reduce((total, alloc) => 
     total + (alloc.hours * 60 + alloc.minutes), 0);
   const remainingMinutes = totalMinutes - allocatedMinutes;
   
-  // Create date labels for UI
   const dateLabels = {};
   [...upcomingDates, ...archivedDates].forEach(date => {
     dateLabels[date] = formatDateLabel(date, resetTime);
@@ -220,6 +256,7 @@ export const TimeBudgetProvider = ({ children }) => {
     deleteCategory,
     updateAllocation,
     copyBudget,
+    deleteBudget,
     showArchive,
     setShowArchive
   };
