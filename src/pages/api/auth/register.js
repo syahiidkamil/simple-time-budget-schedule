@@ -1,20 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import prisma from '../utils/db/prisma';
+import { hashPassword } from '../utils/auth/password';
+import { generateToken } from '../utils/auth/jwt';
 
-// Simple function to read the JSON database
-const readDB = () => {
-  const dbPath = path.join(process.cwd(), 'data', 'db.json');
-  const dbData = fs.readFileSync(dbPath, 'utf8');
-  return JSON.parse(dbData);
-};
-
-// Simple function to write to the JSON database
-const writeDB = (data) => {
-  const dbPath = path.join(process.cwd(), 'data', 'db.json');
-  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
-};
-
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ 
@@ -24,68 +12,88 @@ export default function handler(req, res) {
   }
 
   try {
-    const { name, email, password } = req.body;
+    const { username, password, confirmPassword, accessCode } = req.body;
 
     // Basic validation
-    if (!name || !email || !password) {
+    if (!username || !password || !confirmPassword || !accessCode) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Name, email, and password are required' 
+        message: 'All fields are required' 
       });
     }
 
-    // Read database
-    const db = readDB();
-    
-    // Check if user already exists
-    const userExists = db.users.some(
-      (user) => user.email.toLowerCase() === email.toLowerCase()
-    );
+    // Validate password match
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match'
+      });
+    }
 
-    if (userExists) {
+    // Check if username already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { username }
+    });
+
+    if (existingUser) {
       return res.status(409).json({ 
         success: false, 
-        message: 'User with this email already exists' 
+        message: 'Username already exists' 
       });
     }
 
+    // Validate access code
+    // 1. Get the first access code from database
+    const dbAccessCode = await prisma.accessCode.findFirst({
+      orderBy: {
+        created_at: 'asc'
+      }
+    });
+
+    // 2. Get environment access code
+    const envAccessCode = process.env.ACCESS_CODE || '';
+
+    // 3. Concatenate and check
+    const validAccessCode = envAccessCode + (dbAccessCode?.code || '');
+    if (accessCode !== validAccessCode) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid access code'
+      });
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(password);
+
     // Create new user
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      password, // In a real app, you should hash this password
-      role: 'user', // Default role for new users
-      active: true,
-      createdAt: new Date().toISOString(),
-    };
+    const newUser = await prisma.user.create({
+      data: {
+        username,
+        password_hash: passwordHash,
+        // Default preferences with resetTime set to 22:00
+        preferences: {
+          resetTime: "22:00"
+        }
+      }
+    });
 
-    // Add user to database
-    db.users.push(newUser);
-    writeDB(db);
+    // Generate JWT token
+    const token = generateToken(newUser);
 
-    // Create a sanitized user object (without password)
-    const sanitizedUser = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-    };
-
-    // In a real application, you would use a proper JWT library
-    // For simplicity, we'll create a fake token
-    const token = Buffer.from(JSON.stringify(sanitizedUser)).toString('base64');
-
-    // Return user data and token
-    res.status(201).json({
+    // Return sanitized user data and token
+    return res.status(201).json({
       success: true,
-      user: sanitizedUser,
-      token,
       message: 'Registration successful',
+      token,
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        preferences: newUser.preferences
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       message: 'Internal server error' 
     });

@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 // Use a global variable to prevent multiple instances during development
 const globalForPrisma = global;
@@ -7,7 +7,7 @@ const globalForPrisma = global;
 const prisma = globalForPrisma.prisma || new PrismaClient();
 
 // In development, keep the same instance across hot reloads
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV === 'development') {
   globalForPrisma.prisma = prisma;
 }
 
