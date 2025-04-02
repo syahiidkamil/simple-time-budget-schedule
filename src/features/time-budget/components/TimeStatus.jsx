@@ -15,18 +15,22 @@ const TimeStatus = () => {
   const minutesUntilReset = calculateTimeUntilReset(resetTime);
   const timeUntilReset = formatTime(minutesUntilReset);
 
+  // Format allocated and remaining time
+  const formattedAllocatedTime = formatTime(allocatedMinutes || 0);
+  const formattedRemainingTime = formatTime(Math.abs(remainingMinutes || 0));
+
   return (
     <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">
-            {dateLabels[selectedDate]}
+            {dateLabels[selectedDate] || 'Selected Date'}
           </h2>
           <div className="flex items-center mt-1">
             <div className="text-sm text-gray-500">
-              <span className="font-medium text-gray-700">{formatTime(allocatedMinutes)}</span> allocated, 
-              <span className={`font-medium ${remainingMinutes >= 0 ? 'text-green-600' : 'text-red-600'}`}> {formatTime(Math.abs(remainingMinutes))}</span> 
-              {remainingMinutes >= 0 ? ' remaining' : ' over budget'}
+              <span className="font-medium text-gray-700">{formattedAllocatedTime}</span> allocated, 
+              <span className={`font-medium ${(remainingMinutes || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}> {formattedRemainingTime}</span> 
+              {(remainingMinutes || 0) >= 0 ? ' remaining' : ' over budget'}
             </div>
           </div>
         </div>

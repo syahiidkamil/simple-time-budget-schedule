@@ -3,14 +3,16 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { useTimeBudget } from '../hooks/useTimeBudget';
 
 const BudgetPieChart = () => {
-  const { categories, remainingMinutes } = useTimeBudget();
+  const { allocations, remainingMinutes } = useTimeBudget();
   
-  // Prepare data for the pie chart
-  const pieData = categories.map(cat => ({
-    name: cat.name,
-    value: cat.hours * 60 + cat.minutes,
-    color: cat.color
-  }));
+  // Prepare data for the pie chart - filter out any invalid entries
+  const pieData = allocations
+    .filter(alloc => alloc && alloc.name && !isNaN(alloc.hours) && !isNaN(alloc.minutes))
+    .map(alloc => ({
+      name: alloc.name,
+      value: (parseInt(alloc.hours) || 0) * 60 + (parseInt(alloc.minutes) || 0),
+      color: alloc.color
+    }));
   
   // Add remaining time if there is any
   if (remainingMinutes > 0) {
@@ -40,7 +42,10 @@ const BudgetPieChart = () => {
   };
   
   // Format the legend value to show hours and minutes
-  const formatLegendValue = (value) => {
+  const formatLegendValue = (value, entry) => {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return '0h 0m';
+    }
     const hours = Math.floor(value / 60);
     const minutes = value % 60;
     return `${hours}h ${minutes}m`;

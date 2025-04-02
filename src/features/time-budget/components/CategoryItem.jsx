@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useTimeBudget } from '../hooks/useTimeBudget';
 import CategoryForm from './CategoryForm';
 
-const CategoryItem = ({ category }) => {
-  const { updateCategory, deleteCategory } = useTimeBudget();
+const CategoryItem = ({ allocation }) => {
+  const { updateAllocation, updateCategory, deleteCategory } = useTimeBudget();
   const [isEditing, setIsEditing] = useState(false);
-  const [hours, setHours] = useState(category.hours);
-  const [minutes, setMinutes] = useState(category.minutes);
+  const [hours, setHours] = useState(allocation.hours);
+  const [minutes, setMinutes] = useState(allocation.minutes);
 
   const handleTimeChange = async (field, value) => {
     try {
@@ -17,12 +17,12 @@ const CategoryItem = ({ category }) => {
         // Limit hours to 0-24
         const newHours = Math.min(Math.max(numValue, 0), 24);
         setHours(newHours);
-        await updateCategory(category.id, { hours: newHours });
+        await updateAllocation(allocation.categoryId, { hours: newHours });
       } else if (field === 'minutes') {
         // Limit minutes to 0-59
         const newMinutes = Math.min(Math.max(numValue, 0), 59);
         setMinutes(newMinutes);
-        await updateCategory(category.id, { minutes: newMinutes });
+        await updateAllocation(allocation.categoryId, { minutes: newMinutes });
       }
     } catch (err) {
       console.error('Error updating time:', err);
@@ -31,7 +31,11 @@ const CategoryItem = ({ category }) => {
 
   const handleUpdate = async (updatedCategory) => {
     try {
-      await updateCategory(category.id, updatedCategory);
+      // Only update name and color of the category (not the time allocation)
+      await updateCategory(allocation.categoryId, {
+        name: updatedCategory.name,
+        color: updatedCategory.color
+      });
       setIsEditing(false);
     } catch (err) {
       console.error('Error updating category:', err);
@@ -39,9 +43,9 @@ const CategoryItem = ({ category }) => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+    if (window.confirm('Are you sure you want to delete this category? This will remove it from all days.')) {
       try {
-        await deleteCategory(category.id);
+        await deleteCategory(allocation.categoryId);
       } catch (err) {
         console.error('Error deleting category:', err);
       }
@@ -51,7 +55,13 @@ const CategoryItem = ({ category }) => {
   if (isEditing) {
     return (
       <CategoryForm 
-        initialValues={category}
+        initialValues={{
+          id: allocation.categoryId,
+          name: allocation.name,
+          color: allocation.color,
+          hours: allocation.hours,
+          minutes: allocation.minutes
+        }}
         onSubmit={handleUpdate}
         onCancel={() => setIsEditing(false)}
       />
@@ -62,9 +72,9 @@ const CategoryItem = ({ category }) => {
     <div className="flex items-center p-3 border border-gray-200 rounded-lg hover:border-gray-300">
       <div 
         className="w-4 h-4 rounded-full mr-3" 
-        style={{ backgroundColor: category.color }}
+        style={{ backgroundColor: allocation.color }}
       ></div>
-      <span className="font-medium text-gray-800">{category.name}</span>
+      <span className="font-medium text-gray-800">{allocation.name}</span>
       
       <div className="ml-auto flex items-center">
         <div className="flex items-center border border-gray-200 rounded-md mr-4">

@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
 
+// Predefined colors for easy selection
+const predefinedColors = [
+  '#4F46E5', // Indigo
+  '#8B5CF6', // Purple
+  '#EC4899', // Pink
+  '#10B981', // Emerald
+  '#F59E0B', // Amber
+  '#EF4444', // Red
+  '#3B82F6', // Blue
+  '#14B8A6', // Teal
+  '#F97316', // Orange
+  '#6366F1', // Violet
+  '#8B5CF6', // Purple
+  '#06B6D4'  // Cyan
+];
+
 const CategoryForm = ({ 
   initialValues = { name: '', color: '#4F46E5', hours: 0, minutes: 0 }, 
   onSubmit, 
@@ -61,21 +77,35 @@ const CategoryForm = ({
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Color
         </label>
-        <div className="flex items-center">
-          <input
-            type="color"
-            name="color"
-            value={formData.color}
-            onChange={handleChange}
-            className="h-8 w-8 mr-3 rounded border-0"
-          />
-          <input
-            type="text"
-            name="color"
-            value={formData.color}
-            onChange={handleChange}
-            className="w-28 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center">
+            <input
+              type="color"
+              name="color"
+              value={formData.color}
+              onChange={handleChange}
+              className="h-8 w-8 mr-3 rounded border-0"
+            />
+            <input
+              type="text"
+              name="color"
+              value={formData.color}
+              onChange={handleChange}
+              className="w-28 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {predefinedColors.map((color, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setFormData({ ...formData, color })}
+                className={`w-8 h-8 rounded-full border ${formData.color === color ? 'border-2 border-black' : 'border-gray-300'}`}
+                style={{ backgroundColor: color }}
+                title={`Select color ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
       

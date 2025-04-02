@@ -3,6 +3,7 @@ import DaySelector from "./components/DaySelector";
 import TimeStatus from "./components/TimeStatus";
 import BudgetPieChart from "./components/BudgetPieChart";
 import CategoryList from "./components/CategoryList";
+import AddBudgetButton from "./components/AddBudgetButton";
 import { useTimeBudget } from "./hooks/useTimeBudget";
 
 const TimeBudgetPage = () => {
@@ -27,7 +28,7 @@ const TimeBudgetPage = () => {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-white shadow rounded-lg p-6 max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Time Budget</h2>
       <p className="mb-6 text-gray-600">
         Manage your daily time allocations for different activities.
@@ -36,6 +37,7 @@ const TimeBudgetPage = () => {
       <div className="space-y-6">
         <DaySelector />
         <TimeStatus />
+        <AddBudgetButton />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">

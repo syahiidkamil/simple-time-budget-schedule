@@ -4,7 +4,7 @@ import CategoryItem from './CategoryItem';
 import CategoryForm from './CategoryForm';
 
 const CategoryList = () => {
-  const { categories, addCategory } = useTimeBudget();
+  const { allocations, addCategory } = useTimeBudget();
   const [showAddForm, setShowAddForm] = useState(false);
 
   const handleAddCategory = async (newCategory) => {
@@ -54,9 +54,15 @@ const CategoryList = () => {
       )}
 
       <div className="space-y-4">
-        {categories.map(category => (
-          <CategoryItem key={category.id} category={category} />
-        ))}
+        {allocations && allocations.length > 0 ? (
+          allocations.map(allocation => allocation && allocation.categoryId ? (
+            <CategoryItem key={allocation.categoryId} allocation={allocation} />
+          ) : null)
+        ) : (
+          <div className="p-4 text-center text-gray-500">
+            No categories yet. Add your first category to get started.
+          </div>
+        )}
       </div>
     </div>
   );

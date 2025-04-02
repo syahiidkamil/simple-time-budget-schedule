@@ -5,6 +5,9 @@ A web application that helps users budget their 24 hours and schedule their acti
 ## Implemented Features
 
 ### Time Budget Feature
+- Normalized data structure optimized for database integration
+  - Separate categories collection with shared properties (name, color)
+  - Date-specific time allocations for each category
 - Date-based structure for budget entries, supporting past, present, and future dates
 - Visual breakdown of 24-hour time allocation with a pie chart
 - Create, edit, and delete time categories with custom colors

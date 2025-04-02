@@ -1,31 +1,37 @@
 {
   "timebudget": {
-    "entries": [
+    "categories": [
+      { "id": "1", "name": "Work", "color": "#4F46E5" },
+      { "id": "2", "name": "Sleep", "color": "#8B5CF6" },
+      { "id": "3", "name": "Personal", "color": "#EC4899" },
+      { "id": "4", "name": "Exercise", "color": "#10B981" }
+    ],
+    "budgets": [
       {
         "date": "2025-04-02",
-        "categories": [
-          { "id": "1", "name": "Work", "color": "#4F46E5", "hours": 8, "minutes": 0 },
-          { "id": "2", "name": "Sleep", "color": "#8B5CF6", "hours": 8, "minutes": 0 },
-          { "id": "3", "name": "Personal", "color": "#EC4899", "hours": 5, "minutes": 30 },
-          { "id": "4", "name": "Exercise", "color": "#10B981", "hours": 1, "minutes": 0 }
+        "allocations": [
+          { "categoryId": "1", "hours": 8, "minutes": 0 },
+          { "categoryId": "2", "hours": 8, "minutes": 0 },
+          { "categoryId": "3", "hours": 5, "minutes": 30 },
+          { "categoryId": "4", "hours": 1, "minutes": 0 }
         ]
       },
       {
         "date": "2025-04-03",
-        "categories": [
-          { "id": "1", "name": "Work", "color": "#4F46E5", "hours": 8, "minutes": 0 },
-          { "id": "2", "name": "Sleep", "color": "#8B5CF6", "hours": 8, "minutes": 0 },
-          { "id": "3", "name": "Personal", "color": "#EC4899", "hours": 5, "minutes": 30 },
-          { "id": "4", "name": "Exercise", "color": "#10B981", "hours": 1, "minutes": 0 }
+        "allocations": [
+          { "categoryId": "1", "hours": 8, "minutes": 0 },
+          { "categoryId": "2", "hours": 8, "minutes": 0 },
+          { "categoryId": "3", "hours": 5, "minutes": 30 },
+          { "categoryId": "4", "hours": 1, "minutes": 0 }
         ]
       },
       {
         "date": "2025-04-04",
-        "categories": [
-          { "id": "1", "name": "Work", "color": "#4F46E5", "hours": 8, "minutes": 0 },
-          { "id": "2", "name": "Sleep", "color": "#8B5CF6", "hours": 8, "minutes": 0 },
-          { "id": "3", "name": "Personal", "color": "#EC4899", "hours": 5, "minutes": 30 },
-          { "id": "4", "name": "Exercise", "color": "#10B981", "hours": 1, "minutes": 0 }
+        "allocations": [
+          { "categoryId": "1", "hours": 8, "minutes": 0 },
+          { "categoryId": "2", "hours": 8, "minutes": 0 },
+          { "categoryId": "3", "hours": 5, "minutes": 30 },
+          { "categoryId": "4", "hours": 1, "minutes": 0 }
         ]
       }
     ],
